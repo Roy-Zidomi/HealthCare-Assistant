@@ -104,7 +104,7 @@ const MainApp = () => {
           <p className={`text-sm ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
           }`}>
-            ⚠️ This is not a substitute for professional medical advice. Always consult a qualified healthcare provider.
+             This is not a substitute for professional medical advice. Always consult a qualified healthcare provider.
           </p>
         </div>
       </footer>

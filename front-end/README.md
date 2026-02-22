@@ -4,12 +4,12 @@ React frontend for the AI Healthcare Assistant application.
 
 ## Features
 
-- 💬 **Symptom Checker**: Text-based symptom analysis
-- 📷 **Image Analysis**: Multimodal analysis with image upload
-- 🎨 **Beautiful UI**: Modern, responsive design with Tailwind CSS
-- ⚡ **Fast & Responsive**: Built with Vite for optimal performance
-- 🔄 **State Management**: Custom hooks for clean state handling
-- ✅ **Error Handling**: Comprehensive error and validation handling
+- **Symptom Checker**: Text-based symptom analysis
+- **Image Analysis**: Multimodal analysis with image upload
+- **Beautiful UI**: Modern, responsive design with Tailwind CSS
+- **Fast & Responsive**: Built with Vite for optimal performance
+- **State Management**: Custom hooks for clean state handling
+- **Error Handling**: Comprehensive error and validation handling
 
 ## Setup
 

@@ -15,7 +15,9 @@ const TEXT_PROMPT_TEMPLATE = (symptoms) =>
   `Based on these symptoms (text only), provide a structured response:\n\nSymptoms: ${symptoms}\n\nRespond with a single JSON object with keys: condition (possible condition, non-diagnostic), severity (mild/moderate/high), advice (home care advice), doctor_visit (when to see a doctor), disclaimer (medical disclaimer).`;
 
 const MULTIMODAL_PROMPT_TEMPLATE = (symptoms) =>
-  `The user has provided symptoms (text) and an image. Consider both when answering.\n\nSymptoms: ${symptoms || "Not provided"}\n\nAnalyze and respond with a single JSON object with keys: condition (possible condition, non-diagnostic), severity (mild/moderate/high), advice (home care advice), doctor_visit (when to see a doctor), disclaimer (medical disclaimer). Keep total response under ${MAX_RESPONSE_WORDS} words.`;
+  `The user has provided symptoms (text) and an image. Consider both when answering.\n\nSymptoms: ${
+    symptoms || "Not provided"
+  }\n\nAnalyze and respond with a single JSON object with keys: condition (possible condition, non-diagnostic), severity (mild/moderate/high), advice (home care advice), doctor_visit (when to see a doctor), disclaimer (medical disclaimer). Keep total response under ${MAX_RESPONSE_WORDS} words.`;
 
 let client = null;
 
@@ -32,8 +34,6 @@ function getClient() {
 
 /**
  * Chat (text-only) analysis from symptoms
- * @param {string} symptoms
- * @returns {Promise<{ condition: string, severity: string, advice: string, doctor_visit: string, disclaimer: string }>}
  */
 export async function analyzeSymptoms(symptoms) {
   const ai = getClient();
@@ -42,7 +42,7 @@ export async function analyzeSymptoms(symptoms) {
   let response;
   try {
     response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -51,18 +51,19 @@ export async function analyzeSymptoms(symptoms) {
       },
     });
   } catch (err) {
+    console.log("FULL ERROR:", err); // DEBUG ERROR ASLI
+
     const msg = err?.message ?? String(err);
     const errorStr = String(err);
 
-    // Check for rate limit / quota exceeded
     if (
       msg.includes("429") ||
       msg.includes("RESOURCE_EXHAUSTED") ||
       msg.includes("quota") ||
       errorStr.includes("429")
     ) {
-      // Try to extract retry delay from error if available
       let retryMessage = "Please try again in a few minutes.";
+
       if (errorStr.includes("retry") || errorStr.includes("RetryInfo")) {
         const retryMatch = errorStr.match(
           /retry.*?(\d+)\s*(?:s|second|minute)/i,
@@ -71,15 +72,18 @@ export async function analyzeSymptoms(symptoms) {
           retryMessage = `Please try again in ${retryMatch[1]} seconds.`;
         }
       }
+
       throw new Error(
         `AI service quota exceeded. ${retryMessage} If this persists, consider upgrading your Gemini API plan.`,
       );
     }
+
     if (msg.includes("API key") || msg.includes("401") || msg.includes("403")) {
       throw new Error(
         "AI service configuration error. Please check your API key.",
       );
     }
+
     throw err;
   }
 
@@ -89,9 +93,6 @@ export async function analyzeSymptoms(symptoms) {
 
 /**
  * Multimodal analysis: symptoms (text) + image
- * @param {string} symptoms
- * @param {{ buffer: Buffer, mimetype: string }} image - file buffer and mime type
- * @returns {Promise<{ condition: string, severity: string, advice: string, doctor_visit: string, disclaimer: string }>}
  */
 export async function analyzeImageWithSymptoms(symptoms, image) {
   const ai = getClient();
@@ -123,18 +124,19 @@ export async function analyzeImageWithSymptoms(symptoms, image) {
       },
     });
   } catch (err) {
+    console.log("FULL ERROR:", err); // DEBUG ERROR ASLI
+
     const msg = err?.message ?? String(err);
     const errorStr = String(err);
 
-    // Check for rate limit / quota exceeded
     if (
       msg.includes("429") ||
       msg.includes("RESOURCE_EXHAUSTED") ||
       msg.includes("quota") ||
       errorStr.includes("429")
     ) {
-      // Try to extract retry delay from error if available
       let retryMessage = "Please try again in a few minutes.";
+
       if (errorStr.includes("retry") || errorStr.includes("RetryInfo")) {
         const retryMatch = errorStr.match(
           /retry.*?(\d+)\s*(?:s|second|minute)/i,
@@ -143,15 +145,18 @@ export async function analyzeImageWithSymptoms(symptoms, image) {
           retryMessage = `Please try again in ${retryMatch[1]} seconds.`;
         }
       }
+
       throw new Error(
         `AI service quota exceeded. ${retryMessage} If this persists, consider upgrading your Gemini API plan.`,
       );
     }
+
     if (msg.includes("API key") || msg.includes("401") || msg.includes("403")) {
       throw new Error(
         "AI service configuration error. Please check your API key.",
       );
     }
+
     throw err;
   }
 

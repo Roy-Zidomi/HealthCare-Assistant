@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
 
 const LandingPage = () => {
   const { theme } = useTheme();
+  const featuresRef = useRef(null);
+
+  const handleLearnMore = () => {
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const features = [
     {
@@ -35,6 +40,7 @@ const LandingPage = () => {
         ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
         : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'
     }`}>
+
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -53,12 +59,14 @@ const LandingPage = () => {
           }`}>
             Your AI-Powered Healthcare Assistant
           </h1>
+
           <p className={`text-xl md:text-2xl mb-8 ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
           }`}>
             Get instant health insights and guidance based on your symptoms and images.
             Powered by advanced AI technology.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/app"
@@ -66,11 +74,15 @@ const LandingPage = () => {
             >
               Get Started →
             </Link>
-            <button className={`px-8 py-4 border-2 rounded-xl font-semibold transition-all duration-200 ${
-              theme === 'dark'
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}>
+
+            <button
+              onClick={handleLearnMore}
+              className={`px-8 py-4 border-2 rounded-xl font-semibold transition-all duration-200 ${
+                theme === 'dark'
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
               Learn More
             </button>
           </div>
@@ -95,6 +107,7 @@ const LandingPage = () => {
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>Describe your symptoms...</p>
               </div>
+
               <div className={`p-6 rounded-xl ${
                 theme === 'dark' ? 'bg-gray-700/50' : 'bg-purple-50'
               }`}>
@@ -112,15 +125,19 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className={`py-20 ${
-        theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'
-      }`}>
+      <section
+        ref={featuresRef}
+        className={`py-20 ${
+          theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'
+        }`}
+      >
         <div className="container mx-auto px-6">
           <h2 className={`text-4xl font-bold text-center mb-12 ${
             theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
           }`}>
             Powerful Features
           </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <div
@@ -161,11 +178,13 @@ const LandingPage = () => {
             }`}>
               Ready to Get Started?
             </h2>
+
             <p className={`text-lg mb-8 ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
             }`}>
               Experience AI-powered healthcare guidance today.
             </p>
+
             <Link
               to="/app"
               className="inline-block px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
@@ -184,10 +203,11 @@ const LandingPage = () => {
           <p className={`text-sm ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
           }`}>
-            ⚠️ This is not a substitute for professional medical advice. Always consult a qualified healthcare provider.
+            This is not a substitute for professional medical advice. Always consult a qualified healthcare provider.
           </p>
         </div>
       </footer>
+
     </div>
   );
 };

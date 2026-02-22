@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
-import { useChat } from '../hooks/useChat';
-import { useTheme } from '../contexts/ThemeContext';
-import ResultCard from './ResultCard';
+import React, { useState, useRef, useEffect } from "react";
+import { useChat } from "../hooks/useChat";
+import { useTheme } from "../contexts/ThemeContext";
 
 /**
  * Chat Component
  * Handles symptom input and displays AI analysis results
  */
 const Chat = () => {
-  const [symptoms, setSymptoms] = useState('');
+  const [symptoms, setSymptoms] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      id: Date.now(),
+      role: "bot",
+      text: "Hi — saya asisten kesehatan. Jelaskan gejala Anda dan saya akan bantu analisis.",
+    },
+  ]);
+  const [lang, setLang] = useState("id");
+
   const { analyzeSymptoms, data, loading, error, reset } = useChat();
+  const scrollRef = useRef(null);
   const { theme } = useTheme();
+
+  // Naive language detection: prefer Indonesian if common ID words appear
+  const detectLanguage = (text) => {
+    if (!text) return "en";
+    const s = text.toLowerCase();
+    const idWords = [
+      "saya",
+      "kamu",
+      "kalian",
+      "demam",
+      "sakit",
+      "berapa",
+      "selama",
+      "kenapa",
+      "sudah",
+      "hari",
+      "perut",
+      "mengapa",
+      "saya",
+    ];
+    for (const w of idWords) {
+      if (s.includes(w)) return "id";
+    }
+    // fallback: if contains common English words, return 'en'
+    const enWords = ["the", "and", "is", "i", "you", "have", "my"];
+    for (const w of enWords) {
+      if (s.includes(` ${w} `) || s.startsWith(w + " ") || s.endsWith(" " + w))
+        return "en";
+    }
+    return "en";
+  };
 
   /**
    * Handle form submission
@@ -18,12 +58,19 @@ const Chat = () => {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!symptoms.trim()) {
       return;
     }
 
-    await analyzeSymptoms(symptoms);
+    const userMessage = { id: Date.now(), role: "user", text: symptoms };
+    setMessages((m) => [...m, userMessage]);
+    setLang(detectLanguage(userMessage.text));
+    setSymptoms("");
+
+    // Trigger analysis and show typing state (loading comes from hook)
+    await analyzeSymptoms(userMessage.text);
+    // when analyzeSymptoms resolves, we'll append bot message in effect below
   };
 
   /**
@@ -42,114 +89,192 @@ const Chat = () => {
    * Handle reset/clear
    */
   const handleReset = () => {
-    setSymptoms('');
+    setSymptoms("");
     reset();
   };
+
+  // When new `data` or `error` arrives, append a bot message (localized and cleaned)
+  useEffect(() => {
+    if (loading) return; // wait until finished
+
+    if (error) {
+      const errText =
+        lang === "id" ? `Terjadi kesalahan: ${error}` : `Error: ${error}`;
+      setMessages((m) => [
+        ...m,
+        { id: Date.now() + 1, role: "bot", text: errText },
+      ]);
+      return;
+    }
+
+    if (data) {
+      // try to parse JSON-like advice but never print raw JSON
+      const tryParse = (maybe) => {
+        if (!maybe) return null;
+        if (typeof maybe === "object") return maybe;
+        const s = String(maybe).trim();
+        if (s.startsWith("{") || s.startsWith("[")) {
+          try {
+            return JSON.parse(s);
+          } catch (e) {
+            return null;
+          }
+        }
+        return s;
+      };
+
+      const parsed = tryParse(data.advice);
+
+      const t = (idText, enText) => (lang === "id" ? idText : enText);
+
+      const parts = [];
+      if (data.condition)
+        parts.push(
+          t(
+            `Berdasarkan deskripsi, kemungkinan: ${data.condition}.`,
+            `Based on your description, possible: ${data.condition}.`,
+          ),
+        );
+      if (data.severity)
+        parts.push(
+          t(
+            `Tingkat keparahannya diperkirakan ${data.severity}.`,
+            `Estimated severity: ${data.severity}.`,
+          ),
+        );
+
+      if (parsed) {
+        if (typeof parsed === "string") {
+          parts.push(t(`Saran perawatan: ${parsed}`, `Advice: ${parsed}`));
+        } else if (typeof parsed === "object") {
+          if (parsed.advice)
+            parts.push(
+              t(
+                `Saran perawatan: ${parsed.advice}`,
+                `Advice: ${parsed.advice}`,
+              ),
+            );
+          else if (parsed.condition && !data.condition)
+            parts.push(
+              t(
+                `Kemungkinan: ${parsed.condition}`,
+                `Possible: ${parsed.condition}`,
+              ),
+            );
+          else {
+            // readable summary from object
+            const kv = Object.entries(parsed)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join("; ");
+            parts.push(t(`Saran: ${kv}`, `Info: ${kv}`));
+          }
+        }
+      }
+
+      if (data.doctor_visit)
+        parts.push(t(`${data.doctor_visit}`, `${data.doctor_visit}`));
+      if (data.disclaimer)
+        parts.push(
+          t(`Catatan: ${data.disclaimer}`, `Note: ${data.disclaimer}`),
+        );
+
+      const botText =
+        parts.filter(Boolean).join("\n\n") ||
+        (lang === "id"
+          ? "Maaf, saya tidak bisa memberikan analisis dengan informasi ini."
+          : "Sorry, I can't provide an assessment with the given information.");
+
+      setMessages((m) => [
+        ...m,
+        { id: Date.now() + 2, role: "bot", text: botText },
+      ]);
+    }
+  }, [data, error, loading, lang]);
+
+  // Auto-scroll to bottom on messages change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
 
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className={`text-3xl font-bold mb-2 ${
-          theme === 'dark'
-            ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400'
-            : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600'
-        }`}>
+        <h2
+          className={`text-3xl font-bold mb-2 ${
+            theme === "dark"
+              ? "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400"
+              : "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"
+          }`}
+        >
           Symptom Checker
         </h2>
-        <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+        <p className={theme === "dark" ? "text-gray-300" : "text-gray-700"}>
           Describe your symptoms and get AI-powered health guidance
         </p>
       </div>
 
-      {/* Chat Form */}
-      <form onSubmit={handleSubmit} className="card">
-        <div className="mb-4">
-          <label htmlFor="symptoms" className={`block text-sm font-semibold mb-2 ${
-            theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
-          }`}>
-            Describe Your Symptoms
-          </label>
-          <textarea
-            id="symptoms"
-            value={symptoms}
-            onChange={handleInputChange}
-            placeholder="e.g., I have been experiencing headaches and fever for the past 2 days..."
-            className="input-field min-h-[120px] resize-none"
-            disabled={loading}
-            required
-          />
-          <p className={`text-xs mt-2 ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`}>
-            Be as detailed as possible for better analysis
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className={`mb-4 p-4 rounded-lg backdrop-blur-sm ${
-            theme === 'dark'
-              ? 'bg-red-900/30 border border-red-500/50'
-              : 'bg-red-50 border border-red-200'
-          }`}>
-            <p className={`text-sm flex items-center ${
-              theme === 'dark' ? 'text-red-300' : 'text-red-800'
-            }`}>
-              <span className="mr-2">❌</span>
-              {error}
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading || !symptoms.trim()}
-            className="btn-primary flex-1"
+      {/* Chat Window */}
+      <div className={`card p-0 overflow-hidden ${theme === "dark" ? "" : ""}`}>
+        <div className="chat-window h-96 flex flex-col">
+          <div
+            ref={scrollRef}
+            className="chat-messages flex-1 overflow-auto p-4 space-y-4"
           >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Analyzing...
-              </span>
-            ) : (
-              'Analyze Symptoms'
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`message ${m.role === "user" ? "user" : "bot"} animate-fade-in`}
+              >
+                <div className="bubble">
+                  {m.text.split("\n").map((line, i) => (
+                    <p key={i} className="whitespace-pre-wrap">
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Typing indicator */}
+            {loading && (
+              <div className="message bot">
+                <div className="bubble typing">
+                  <span className="dot" />
+                  <span className="dot" />
+                  <span className="dot" />
+                </div>
+              </div>
             )}
-          </button>
-          
-          {(data || error) && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className={`px-6 py-3 border-2 font-semibold rounded-lg transition-all duration-200 ${
-                theme === 'dark'
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-              }`}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </form>
+          </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="card mt-6 text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-            Analyzing your symptoms...
-          </p>
+          {/* Input area */}
+          <form onSubmit={handleSubmit} className="p-4 border-t">
+            <div className="flex gap-3 items-end">
+              <textarea
+                id="symptoms"
+                value={symptoms}
+                onChange={handleInputChange}
+                placeholder="Tulis pesan... (contoh: demam dan sakit kepala selama 2 hari)"
+                className="input-field min-h-[48px] max-h-36 resize-none flex-1"
+                disabled={loading}
+                required
+              />
+              <button
+                type="submit"
+                disabled={loading || !symptoms.trim()}
+                className="btn-primary"
+              >
+                {loading ? "..." : "Kirim"}
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
 
-      {/* Result Card */}
-      {data && !loading && <ResultCard data={data} />}
+      {/* Removed separate Analysis Result panel — replies now appear inline in the chat */}
     </div>
   );
 };
