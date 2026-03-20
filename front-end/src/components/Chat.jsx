@@ -169,6 +169,10 @@ const Chat = () => {
             parts.push(t(`Saran: ${kv}`, `Info: ${kv}`));
           }
         }
+      } else if (data.advice) {
+        parts.push(
+          t(`Saran perawatan: ${data.advice}`, `Advice: ${data.advice}`),
+        );
       }
 
       if (data.doctor_visit)
