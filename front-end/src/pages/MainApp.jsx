@@ -33,7 +33,7 @@ const MainApp = () => {
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              ← Back
+              Back
             </Link>
           </div>
         </div>
@@ -73,7 +73,7 @@ const MainApp = () => {
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
               }`}
             >
-              💬 Symptom Checker
+              Symptom Checker
             </button>
             <button
               onClick={() => setActiveTab('image')}
@@ -85,7 +85,7 @@ const MainApp = () => {
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
               }`}
             >
-              📷 Image Analysis
+              Image Analysis
             </button>
           </div>
         </div>

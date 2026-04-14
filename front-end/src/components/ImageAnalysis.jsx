@@ -216,7 +216,9 @@ const ImageAnalysis = () => {
             <p className={`text-sm flex items-center ${
               theme === 'dark' ? 'text-red-300' : 'text-red-800'
             }`}>
-              <span className="mr-2">❌</span>
+              <svg className="mr-2 h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 10-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 101.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clipRule="evenodd" />
+              </svg>
               {error}
             </p>
           </div>

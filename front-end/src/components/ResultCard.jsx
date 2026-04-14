@@ -51,22 +51,22 @@ const ResultCard = ({ data }) => {
   };
 
   /**
-   * Get severity icon based on severity level
+   * Get severity indicator color based on severity level
    * @param {string} severity - Severity level
-   * @returns {string} Emoji icon
+   * @returns {string} Tailwind CSS classes
    */
-  const getSeverityIcon = (severity) => {
+  const getSeverityIndicatorClass = (severity) => {
     const severityLower = severity?.toLowerCase() || 'mild';
     
     switch (severityLower) {
       case 'mild':
-        return '🟢';
+        return 'bg-green-500';
       case 'moderate':
-        return '🟡';
+        return 'bg-yellow-500';
       case 'high':
-        return '🔴';
+        return 'bg-red-500';
       default:
-        return '⚪';
+        return 'bg-gray-400';
     }
   };
 
@@ -89,7 +89,10 @@ const ResultCard = ({ data }) => {
           </p>
         </div>
         <div className={`severity-badge border ${getSeverityBadgeClass(data.severity)}`}>
-          <span className="mr-2">{getSeverityIcon(data.severity)}</span>
+          <span
+            className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${getSeverityIndicatorClass(data.severity)}`}
+            aria-hidden="true"
+          ></span>
           <span className="capitalize">{data.severity || 'mild'}</span>
         </div>
       </div>
@@ -100,7 +103,6 @@ const ResultCard = ({ data }) => {
           <h4 className={`text-sm font-semibold mb-2 flex items-center ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
           }`}>
-            <span className="mr-2">💡</span>
             Home Care Advice
           </h4>
           <p className={`leading-relaxed p-4 rounded-lg border-l-4 backdrop-blur-sm ${
@@ -119,7 +121,6 @@ const ResultCard = ({ data }) => {
           <h4 className={`text-sm font-semibold mb-2 flex items-center ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
           }`}>
-            <span className="mr-2">🏥</span>
             When to See a Doctor
           </h4>
           <p className={`leading-relaxed p-4 rounded-lg border-l-4 backdrop-blur-sm ${
@@ -140,9 +141,20 @@ const ResultCard = ({ data }) => {
             : 'bg-amber-50 border border-amber-200'
         }`}>
           <div className="flex items-start">
-            <span className={`mr-2 text-xl ${
-              theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
-            }`}>⚠️</span>
+            <svg
+              className={`mr-2 mt-0.5 h-5 w-5 shrink-0 ${
+                theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
+              }`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l5.58 9.92c.75 1.334-.213 2.981-1.742 2.981H4.42c-1.53 0-2.492-1.647-1.742-2.98l5.58-9.921zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-7a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
             <p className={`text-sm leading-relaxed ${
               theme === 'dark' ? 'text-amber-200' : 'text-amber-800'
             }`}>

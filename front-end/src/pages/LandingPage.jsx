@@ -13,22 +13,22 @@ const LandingPage = () => {
 
   const features = [
     {
-      icon: '💬',
+      icon: 'SC',
       title: 'Symptom Analysis',
       description: 'Describe your symptoms and get AI-powered health insights and recommendations.',
     },
     {
-      icon: '📷',
+      icon: 'IA',
       title: 'Image Analysis',
       description: 'Upload images for visual analysis with multimodal AI technology.',
     },
     {
-      icon: '⚡',
+      icon: 'FAST',
       title: 'Instant Results',
       description: 'Get quick, accurate health guidance powered by advanced AI models.',
     },
     {
-      icon: '🔒',
+      icon: 'SAFE',
       title: 'Privacy First',
       description: 'Your health data is processed securely and never stored.',
     },
@@ -72,7 +72,7 @@ const LandingPage = () => {
               to="/app"
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
-              Get Started →
+              Get Started
             </Link>
 
             <button
@@ -99,7 +99,7 @@ const LandingPage = () => {
               <div className={`p-6 rounded-xl ${
                 theme === 'dark' ? 'bg-gray-700/50' : 'bg-blue-50'
               }`}>
-                <div className="text-4xl mb-3">💬</div>
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">SC</div>
                 <h3 className={`font-semibold mb-2 ${
                   theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
                 }`}>Symptom Checker</h3>
@@ -111,7 +111,7 @@ const LandingPage = () => {
               <div className={`p-6 rounded-xl ${
                 theme === 'dark' ? 'bg-gray-700/50' : 'bg-purple-50'
               }`}>
-                <div className="text-4xl mb-3">📷</div>
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-full bg-purple-100 text-purple-700 text-sm font-bold">IA</div>
                 <h3 className={`font-semibold mb-2 ${
                   theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
                 }`}>Image Analysis</h3>
@@ -148,7 +148,9 @@ const LandingPage = () => {
                     : 'bg-white border border-gray-200 hover:border-purple-300 shadow-md'
                 }`}
               >
-                <div className="text-5xl mb-4">{feature.icon}</div>
+                <div className="inline-flex items-center justify-center min-w-14 h-14 px-3 mb-4 rounded-full bg-slate-100 text-slate-700 text-xs font-bold tracking-wide">
+                  {feature.icon}
+                </div>
                 <h3 className={`text-xl font-semibold mb-3 ${
                   theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
                 }`}>
@@ -189,7 +191,7 @@ const LandingPage = () => {
               to="/app"
               className="inline-block px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
-              Start Using HealthAI →
+              Start Using HealthAI
             </Link>
           </div>
         </div>
